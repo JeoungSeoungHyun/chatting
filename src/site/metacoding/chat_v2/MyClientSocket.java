@@ -56,9 +56,16 @@ public class MyClientSocket {
                     System.out.println("받은 메시지 : " + inputData);
                 }
             } catch (Exception e) {
-                // e.printStackTrace();
-                System.out.println("연결 해제됨");
-                isLogin = false;
+                try {
+                    // e.printStackTrace();
+                    System.out.println("연결 해제됨");
+                    isLogin = false;
+                    writer.close();
+                    reader.close();
+                    socket.close();
+                } catch (Exception f) {
+                    System.out.println("연결 해제 실패 : " + f.getMessage());
+                }
             }
         }
 

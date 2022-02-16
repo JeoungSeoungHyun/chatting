@@ -67,8 +67,10 @@ public class MyServerSocket {
 
                     // for문 돌려서 List에 있는 다른 모든 클라이언트에게 메시지 전송
                     for (고객전담스레드 t : 고객리스트) {
-                        t.writer.write(inputData + "\n");
-                        t.writer.flush();
+                        if (t != this) {
+                            t.writer.write(inputData + "\n");
+                            t.writer.flush();
+                        }
                     }
                 } catch (Exception e) {
                     // e.printStackTrace();
