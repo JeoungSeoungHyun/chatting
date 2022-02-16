@@ -1,0 +1,87 @@
+package site.metacoding.chat_v3;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.Socket;
+import java.util.Scanner;
+
+public class MyClientSocket {
+
+    Socket socket;
+    boolean isLogin = true;
+
+    // 쓰기 스레드 필요 - 메인 스레드
+    Scanner sc;
+    BufferedWriter writer;
+
+    // 읽기 스레드 필요 - 새로운 스레드
+    BufferedReader reader;
+
+    public MyClientSocket() {
+        try {
+            // 소켓 연결
+            socket = new Socket("localhost", 2000);
+            String userName;
+
+            // 버퍼 달기
+            sc = new Scanner(System.in);
+            writer = new BufferedWriter(
+                    new OutputStreamWriter(socket.getOutputStream()));
+            reader = new BufferedReader(
+                    new InputStreamReader(socket.getInputStream()));
+
+            // 새로운스레드(읽기 전용)
+            new Thread(new 읽기전담스레드()).start();
+
+            // 메인스레드(쓰기 전용) - 메인스레드는 마지막에
+
+            // 최초 username 전송 프로토콜
+            System.out.println("아이디를 입력하세요.");
+            userName = sc.nextLine();
+            writer.write(userName + "\n");
+            writer.flush();
+            System.out.println("ID가 전송되었습니다.");
+            System.out.println("ID : " + userName);
+
+            while (isLogin) {
+                String keyboardInpuData = sc.nextLine();
+                writer.write(keyboardInpuData + "\n"); // 버퍼에 담기
+                writer.flush(); // 버퍼에 담긴 것을 stream으로 흘려보내기
+            }
+        } catch (Exception e) {
+            // e.printStackTrace();
+            System.out.println("연결이 없습니다");
+        }
+    }
+
+    class 읽기전담스레드 implements Runnable {
+
+        @Override
+        public void run() {
+            try {
+                while (isLogin) {
+                    String inputData = reader.readLine();
+                    System.out.println(inputData);
+                }
+            } catch (Exception e) {
+                try {
+                    // e.printStackTrace();
+                    System.out.println("연결 해제됨");
+                    isLogin = false;
+                    writer.close();
+                    reader.close();
+                    socket.close();
+                } catch (Exception f) {
+                    System.out.println("연결 해제 실패 : " + f.getMessage());
+                }
+            }
+        }
+
+    }
+
+    public static void main(String[] args) {
+        new MyClientSocket();
+    }
+}
