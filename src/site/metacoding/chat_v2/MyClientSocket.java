@@ -10,6 +10,7 @@ import java.util.Scanner;
 public class MyClientSocket {
 
     Socket socket;
+    boolean isLogin = true;
 
     // 쓰기 스레드 필요 - 메인 스레드
     Scanner sc;
@@ -34,13 +35,14 @@ public class MyClientSocket {
             new Thread(new 읽기전담스레드()).start();
 
             // 메인스레드(쓰기 전용) - 메인스레드는 마지막에
-            while (true) {
+            while (isLogin) {
                 String keyboardInpuData = sc.nextLine();
                 writer.write(keyboardInpuData + "\n"); // 버퍼에 담기
                 writer.flush(); // 버퍼에 담긴 것을 stream으로 흘려보내기
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            // e.printStackTrace();
+            System.out.println("연결이 없습니다");
         }
     }
 
@@ -49,12 +51,14 @@ public class MyClientSocket {
         @Override
         public void run() {
             try {
-                while (true) {
+                while (isLogin) {
                     String inputData = reader.readLine();
                     System.out.println("받은 메시지 : " + inputData);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                // e.printStackTrace();
+                System.out.println("연결 해제됨");
+                isLogin = false;
             }
         }
 

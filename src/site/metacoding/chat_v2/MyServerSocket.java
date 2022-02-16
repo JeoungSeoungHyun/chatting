@@ -6,7 +6,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -43,6 +42,7 @@ public class MyServerSocket {
         Socket socket;
         BufferedReader reader;
         BufferedWriter writer;
+        boolean isLogin = true;
 
         public 고객전담스레드(Socket socket) {
             this.socket = socket;
@@ -60,7 +60,7 @@ public class MyServerSocket {
 
         @Override
         public void run() {
-            while (true) {
+            while (isLogin) {
                 try {
                     String inputData = reader.readLine();
                     System.out.println("from 클라이언트 : " + inputData);
@@ -71,11 +71,22 @@ public class MyServerSocket {
                         t.writer.flush();
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    // e.printStackTrace();
+                    System.out.println("오류내용 : " + e.getMessage());
+                    try {
+                        System.out.println("클라이언트 연결 해제 중");
+                        isLogin = false; // while문 종료
+                        고객리스트.remove(this); // 리스트에 담겨있는 소켓을 날려줘야한다.
+                        writer.close(); // GarbageCollection이 일어나려면
+                        reader.close();// 시간이 걸리는데 통신(IO가 생기기 때문)의 부하가
+                        socket.close();// GarbageCollection의 부하가 더 크기 때문에 Garbage Collection을 직접 해준다.
+                    } catch (Exception f) {
+                        // f.printStackTrace();
+                        System.out.println("연결 해제 실패 : " + f.getMessage());
+                    }
                 }
             }
         }
-
     }
 
     public static void main(String[] args) {
