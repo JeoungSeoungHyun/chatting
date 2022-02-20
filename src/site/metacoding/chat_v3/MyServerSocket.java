@@ -107,11 +107,23 @@ public class MyServerSocket {
 
         }
 
+        public void sendUserList() {
+            try {
+                String userList = "USER";
+                for (고객전담스레드 t : 고객리스트) {
+                    userList = userList + ":" + t.userName;
+                }
+                this.writer.write(userList + "\n");
+                this.writer.flush();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
         // 재원프로토콜 검사기
         // ALL:안녕
         // CHAT:ID:안녕
         public void jwp(String inputData) {
-
             // 1. 프로토콜 분리
             String[] token = inputData.split(":");
             String protocol = token[0];
@@ -124,6 +136,8 @@ public class MyServerSocket {
                 String msg = token[2];
                 chatPrivate(receiver, msg);
 
+            } else if (protocol.equals("USER")) {
+                sendUserList();
             } else { // 프로토콜 통과 못함
                 System.out.println("프로토콜 없음");
             }
@@ -134,6 +148,10 @@ public class MyServerSocket {
             // 최초 메시지는 userName이다.
             try {
                 userName = reader.readLine();
+                for (고객전담스레드 t : 고객리스트) {
+                    t.writer.write(userName + "님이 입장하였습니다.\n");
+                    t.writer.flush();
+                }
             } catch (Exception e1) {
                 // e1.printStackTrace();
                 isLogin = false; // ID없으면 세션 형성 안됨
@@ -146,10 +164,14 @@ public class MyServerSocket {
                     // System.out.println("from 클라이언트 : " + inputData);
 
                     // 프로토콜 검사기
-                    jwp(inputData);
+                    if (inputData != null) {
+                        System.out.println("데이터" + inputData);
+                        jwp(inputData);
+                    }
                 } catch (Exception e) {
                     // e.printStackTrace();
                     System.out.println("오류내용 : " + e.getMessage());
+                    e.printStackTrace();
                     try {
                         System.out.println("클라이언트 연결 해제 중");
                         isLogin = false; // while문 종료
@@ -164,6 +186,7 @@ public class MyServerSocket {
                 }
             }
         }
+
     }
 
     public static void main(String[] args) {
